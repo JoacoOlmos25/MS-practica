@@ -64,7 +64,8 @@ Deno.serve(async (req) => {
     }
 
     if (req.method === "DELETE") {
-      const id = url.searchParams.get("id");
+      const body = await req.json();
+      const { id } = body;
       if (!id) throw new Error("Missing reservation ID");
 
       const { data, error } = await supabaseAdmin

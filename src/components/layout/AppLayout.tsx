@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 import { Toaster } from 'sonner';
+import ChatWidget from '../ChatWidget';
 
 export default function AppLayout() {
   return (
@@ -12,6 +13,7 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <Footer />
+      <ChatWidget />
       <Toaster position="bottom-right" richColors />
     </div>
   );
