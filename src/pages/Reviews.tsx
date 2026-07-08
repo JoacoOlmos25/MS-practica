@@ -1,40 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { mockReviews } from '../data/mockData';
 import { Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { supabase } from '../lib/supabase';
 
 export default function Reviews() {
   const { isLoggedIn, user } = useAuth();
   
-  // TODO-BACKEND: Reemplazar el estado local con fetch('/api/reviews')
-  const [reviews, setReviews] = useState(mockReviews);
+  const [reviews, setReviews] = useState<any[]>(mockReviews);
   
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadReviews();
+  }, []);
+
+  const loadReviews = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('reviews', { 
+        method: 'POST',
+        body: { action: 'GET' } 
+      });
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        const mappedReviews = data.map((r: any) => ({
+          id: r.id,
+          usuarioNombre: 'Cliente',
+          calificacion: r.calificacion,
+          comentario: r.comentario,
+          fecha: r.created_at
+        }));
+        setReviews(mappedReviews);
+      }
+    } catch (err) {
+      console.error('Error loading reviews:', err);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) {
       toast.error('Por favor escribí un comentario');
       return;
     }
 
-    // TODO-BACKEND: Llamar a API POST /api/reviews
-    const newReview = {
-      id: Math.random().toString(),
-      usuarioNombre: user?.nombre || 'Anónimo',
-      calificacion: newRating,
-      comentario: newComment,
-      fecha: new Date().toISOString()
-    };
+    setIsSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('reviews', {
+        method: 'POST',
+        body: {
+          calificacion: newRating,
+          comentario: newComment
+        }
+      });
 
-    setReviews([newReview, ...reviews]);
-    setNewComment('');
-    setNewRating(5);
-    toast.success('¡Gracias por tu reseña!');
+      if (error) throw error;
+
+      const newReview = {
+        id: data.id,
+        usuarioNombre: user?.nombre || 'Yo',
+        calificacion: newRating,
+        comentario: newComment,
+        fecha: data.created_at
+      };
+
+      setReviews([newReview, ...reviews]);
+      setNewComment('');
+      setNewRating(5);
+      toast.success('¡Gracias por tu reseña!');
+    } catch (error: any) {
+      toast.error('Error al guardar la reseña');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -86,9 +130,12 @@ export default function Reviews() {
 
               <button
                 type="submit"
-                className="bg-amber-800 text-white px-8 py-3 rounded-md font-medium hover:bg-amber-900 transition-colors"
+                disabled={isSubmitting}
+                className={`text-white px-8 py-3 rounded-md font-medium transition-colors ${
+                  isSubmitting ? 'bg-stone-400 cursor-not-allowed' : 'bg-amber-800 hover:bg-amber-900'
+                }`}
               >
-                Publicar reseña
+                {isSubmitting ? 'Publicando...' : 'Publicar reseña'}
               </button>
             </form>
           ) : (

@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
         .insert({ user_id: user.id, titulo: "Chat Reserva" })
         .select()
         .single();
-      
+
       if (convError) throw convError;
       conversacion_id = newConv.id;
     }
@@ -105,12 +105,12 @@ Solo usa "action": "reserve" si el usuario ya dio toda la información requerida
     if (!response.ok) throw new Error("Gemini API Error: " + JSON.stringify(geminiData));
 
     const aiText = geminiData.candidates[0].content.parts[0].text;
-    
+
     let parsedAiResponse;
     try {
-       parsedAiResponse = JSON.parse(aiText);
+      parsedAiResponse = JSON.parse(aiText);
     } catch (e) {
-       parsedAiResponse = { response: "Hubo un error interpretando mi respuesta.", action: "none" };
+      parsedAiResponse = { response: "Hubo un error interpretando mi respuesta.", action: "none" };
     }
 
     const { action, reservationDetails, response: assistantReply } = parsedAiResponse;
@@ -129,7 +129,7 @@ Solo usa "action": "reserve" si el usuario ya dio toda la información requerida
             cantidad_comensales,
             origen: 'chat'
           });
-          
+
         if (reserveError) {
           finalReply += "\n\n(No pudimos guardar la reserva en el sistema por un error técnico)";
         } else {
@@ -146,7 +146,7 @@ Solo usa "action": "reserve" si el usuario ya dio toda la información requerida
         rol: 'assistant',
         contenido: finalReply
       });
-      
+
     if (astError) throw astError;
 
     return new Response(JSON.stringify({
