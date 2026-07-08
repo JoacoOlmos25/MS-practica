@@ -1,0 +1,6 @@
+{
+  "name": "Restaurant Mockup",
+  "description": "Mockup visual de restaurante para evaluación técnica",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
